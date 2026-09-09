@@ -103,12 +103,14 @@ button {
   padding: 0 14px;
   border: 0;
   border-radius: 10px;
-  background: #f2cfca;
-  color: #8d3730;
+  background: #c83f35;
+  color: #fff;
   font-size: 0.79rem;
   font-weight: 800;
 }
 
 button:disabled {
   cursor: not-allowed;
+  background: #f2cfca;
+  color: #8d3730;
 }

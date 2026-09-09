@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 import { vi } from 'vitest';
+import { CartStore } from '../cart/cart.store';
 import { CatalogPageComponent } from './catalog-page.component';
 import { ProductApiService } from './product-api.service';
 import { Product } from './product.model';
@@ -9,6 +10,7 @@ import { Product } from './product.model';
 describe('CatalogPageComponent', () => {
   let fixture: ComponentFixture<CatalogPageComponent>;
   let getProducts: ReturnType<typeof vi.fn<() => Observable<readonly Product[]>>>;
+  let cart: CartStore;
 
   const products: readonly Product[] = [
     {
@@ -27,6 +29,38 @@ describe('CatalogPageComponent', () => {
       stock: 8,
       imageUrl: '/products/office-chair.webp',
     },
+    {
+      id: 2,
+      name: 'Smartphone X',
+      unitPrice: 90,
+      category: 'TECHNOLOGY',
+      stock: 6,
+      imageUrl: '/products/smartphone-x.webp',
+    },
+    {
+      id: 3,
+      name: 'Wireless Headphones',
+      unitPrice: 40,
+      category: 'TECHNOLOGY',
+      stock: 10,
+      imageUrl: '/products/wireless-headphones.webp',
+    },
+    {
+      id: 5,
+      name: 'Coffee Maker',
+      unitPrice: 60,
+      category: 'HOME',
+      stock: 7,
+      imageUrl: '/products/coffee-maker.webp',
+    },
+    {
+      id: 6,
+      name: 'Urban Backpack',
+      unitPrice: 35,
+      category: 'ACCESSORIES',
+      stock: 12,
+      imageUrl: '/products/urban-backpack.webp',
+    },
   ];
 
   beforeEach(async () => {
@@ -39,6 +73,9 @@ describe('CatalogPageComponent', () => {
         { provide: ProductApiService, useValue: { getProducts } },
       ],
     }).compileComponents();
+
+    cart = TestBed.inject(CartStore);
+    cart.clear();
   });
 
   it('renders the products returned by the API', () => {
@@ -48,8 +85,8 @@ describe('CatalogPageComponent', () => {
 
     const cards = fixture.nativeElement.querySelectorAll('app-product-card');
 
-    expect(cards).toHaveLength(2);
-    expect(fixture.nativeElement.textContent).toContain('2 productos');
+    expect(cards).toHaveLength(6);
+    expect(fixture.nativeElement.textContent).toContain('6 productos');
     expect(fixture.nativeElement.textContent).toContain('Laptop Pro');
   });
 
@@ -70,5 +107,51 @@ describe('CatalogPageComponent', () => {
 
     expect(getProducts).toHaveBeenCalledTimes(2);
     expect(fixture.nativeElement.textContent).toContain('Aún no hay productos disponibles');
+  });
+
+  it('adds products from the catalog and updates the cart controls and subtotal', () => {
+    getProducts.mockReturnValue(of(products));
+    fixture = TestBed.createComponent(CatalogPageComponent);
+    fixture.detectChanges();
+
+    const firstProductCard = fixture.nativeElement.querySelector('app-product-card') as HTMLElement;
+    const addButton = firstProductCard.querySelector('button') as HTMLButtonElement;
+    addButton.click();
+    fixture.detectChanges();
+
+    expect(cart.itemCount()).toBe(1);
+    expect(fixture.nativeElement.querySelector('.cart-preview-total strong')?.textContent).toContain('$120.00');
+
+    const quantityButtons = fixture.nativeElement.querySelectorAll('.cart-item .quantity-control button');
+    (quantityButtons[1] as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(cart.quantityFor(products[0].id)).toBe(2);
+
+    (quantityButtons[0] as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(cart.quantityFor(products[0].id)).toBe(1);
+
+    const removeButton = fixture.nativeElement.querySelector('.remove-item') as HTMLButtonElement;
+    removeButton.click();
+    fixture.detectChanges();
+    expect(cart.isEmpty()).toBe(true);
+  });
+
+  it('opens and closes the mobile cart for both empty and populated carts', () => {
+    getProducts.mockReturnValue(of(products));
+    fixture = TestBed.createComponent(CatalogPageComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.openMobileCart();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Agrega productos desde el catálogo');
+
+    fixture.componentInstance.closeMobileCart();
+    cart.add(products[0]);
+    fixture.componentInstance.openMobileCart();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.mobile-cart-items li')).toHaveLength(1);
+    expect(fixture.nativeElement.querySelector('.mobile-sheet-total strong')?.textContent).toContain('$120.00');
   });
 });

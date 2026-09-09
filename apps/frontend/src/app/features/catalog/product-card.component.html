@@ -27,11 +27,13 @@
     <h2>{{ product().name }}</h2>
     <p class="product-stock">
       <span class="stock-indicator"></span>
-      {{ product().stock }} unidades disponibles
+      {{ remainingStock() }} unidades disponibles
     </p>
     <div class="product-footer">
       <strong>{{ product().unitPrice | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong>
-      <button type="button" disabled>Agregar</button>
+      <button type="button" [disabled]="!canAdd()" (click)="addToCart.emit(product())">
+        {{ canAdd() ? 'Agregar' : 'Máximo' }}
+      </button>
     </div>
   </div>
 </article>
