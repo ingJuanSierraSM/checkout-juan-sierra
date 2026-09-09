@@ -129,7 +129,7 @@
           <div class="final-total"><span>Total a pagar</span><strong>{{ quote.finalTotal | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
         </section>
         @if (quote.discountCapApplied) {
-          <div class="discount-cap-alert" role="status">Aplicamos el límite máximo de {{ quote.maximumDiscountPercentage }}% para proteger el valor de tu compra.</div>
+          <div class="discount-cap-alert" role="status">¡Enhorabuena! Has alcanzado el límite máximo de ahorro permitido ({{ quote.maximumDiscountPercentage }}%).</div>
         }
       }
       @if (checkoutProcess.isProcessing()) {
@@ -184,7 +184,7 @@
       @if (checkout.quote(); as quote) {
         <div class="mobile-discount-summary"><span>Ahorro total · {{ quote.effectiveDiscountPercentage }}%</span><strong>−{{ quote.totalDiscount | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
         @if (quote.discountCapApplied) {
-          <div class="discount-cap-alert" role="status">Límite máximo de {{ quote.maximumDiscountPercentage }}% aplicado.</div>
+          <div class="discount-cap-alert" role="status">¡Enhorabuena! Has alcanzado el límite máximo de ahorro permitido ({{ quote.maximumDiscountPercentage }}%).</div>
         }
       }
     }

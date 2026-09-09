@@ -45,7 +45,7 @@ describe('CheckoutSuccessPageComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('orden #42');
     expect(fixture.nativeElement.textContent).toContain('Cupón WELCOME2026');
-    expect(fixture.nativeElement.textContent).toContain('límite máximo de 35%');
+    expect(fixture.nativeElement.textContent).toContain('límite máximo de ahorro permitido (35%)');
     expect(fixture.nativeElement.querySelector('.final-total strong')?.textContent).toContain('$102.00');
   });
 

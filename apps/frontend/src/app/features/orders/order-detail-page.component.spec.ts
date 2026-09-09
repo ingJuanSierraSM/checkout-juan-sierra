@@ -42,7 +42,7 @@ describe('OrderDetailPageComponent', () => {
 
     expect(getById).toHaveBeenCalledWith(1);
     expect(fixture.nativeElement.textContent).toContain('Smartphone X');
-    expect(fixture.nativeElement.textContent).toContain('límite máximo de 35%');
+    expect(fixture.nativeElement.textContent).toContain('límite máximo de ahorro permitido (35%)');
     expect(fixture.nativeElement.querySelector('.final-total strong')?.textContent).toContain('$81.00');
   });
 
