@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { CartStore } from '../cart/cart.store';
+import { CheckoutProcessStore } from '../checkout/checkout-process.store';
 import { CheckoutQuoteStore } from '../checkout/checkout-quote.store';
 import { CheckoutQuote, CheckoutUiError } from '../checkout/checkout.model';
 import { CatalogPageComponent } from './catalog-page.component';
@@ -22,6 +23,11 @@ describe('CatalogPageComponent', () => {
     refreshQuote: vi.fn(),
     applyCoupon: vi.fn(),
     removeCoupon: vi.fn(),
+  };
+  const checkoutProcess = {
+    isProcessing: signal(false),
+    error: signal<CheckoutUiError | null>(null),
+    confirm: vi.fn(),
   };
 
   const products: readonly Product[] = [
@@ -84,6 +90,7 @@ describe('CatalogPageComponent', () => {
         provideRouter([]),
         { provide: ProductApiService, useValue: { getProducts } },
         { provide: CheckoutQuoteStore, useValue: checkoutStore },
+        { provide: CheckoutProcessStore, useValue: checkoutProcess },
       ],
     }).compileComponents();
 
@@ -96,6 +103,9 @@ describe('CatalogPageComponent', () => {
     checkoutStore.refreshQuote.mockReset();
     checkoutStore.applyCoupon.mockReset();
     checkoutStore.removeCoupon.mockReset();
+    checkoutProcess.isProcessing.set(false);
+    checkoutProcess.error.set(null);
+    checkoutProcess.confirm.mockReset();
   });
 
   it('renders the products returned by the API', () => {
@@ -200,5 +210,37 @@ describe('CatalogPageComponent', () => {
 
     expect(checkoutStore.removeCoupon).toHaveBeenCalled();
     expect((fixture.nativeElement.querySelector('#coupon-code') as HTMLInputElement).value).toBe('');
+  });
+
+  it('forwards a ready cart to the checkout confirmation action', () => {
+    getProducts.mockReturnValue(of(products));
+    checkoutStore.status.set('ready');
+    fixture = TestBed.createComponent(CatalogPageComponent);
+    fixture.detectChanges();
+    cart.add(products[0]);
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('.cart-preview > button') as HTMLButtonElement).click();
+
+    expect(checkoutProcess.confirm).toHaveBeenCalled();
+  });
+
+  it('keeps the discount cap notice visible when the backend applies it', () => {
+    getProducts.mockReturnValue(of(products));
+    checkoutStore.quote.set({
+      originalSubtotal: 120,
+      discounts: [],
+      calculatedDiscountBeforeCap: 48,
+      totalDiscount: 42,
+      effectiveDiscountPercentage: 35,
+      finalTotal: 78,
+      discountCapApplied: true,
+      maximumDiscountPercentage: 35,
+    });
+    cart.add(products[0]);
+    fixture = TestBed.createComponent(CatalogPageComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.discount-cap-alert')?.textContent).toContain('35%');
   });
 });

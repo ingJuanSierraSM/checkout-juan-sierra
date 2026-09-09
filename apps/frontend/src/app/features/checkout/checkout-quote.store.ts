@@ -1,24 +1,12 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY, Subject, catchError, switchMap, tap } from 'rxjs';
-import { ApiError } from '../../core/api/api-error.model';
 import { CartStore } from '../cart/cart.store';
 import { CheckoutApiService } from './checkout-api.service';
+import { toCheckoutUiError } from './checkout-error';
 import { CheckoutQuote, CheckoutQuoteRequest, CheckoutUiError } from './checkout.model';
 
 type QuoteStatus = 'idle' | 'loading' | 'ready' | 'error';
-
-function isApiError(value: unknown): value is ApiError {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'code' in value &&
-    'message' in value &&
-    typeof value.code === 'string' &&
-    typeof value.message === 'string'
-  );
-}
 
 @Injectable({ providedIn: 'root' })
 export class CheckoutQuoteStore {
@@ -44,7 +32,13 @@ export class CheckoutQuoteStore {
             }),
             catchError((httpError: unknown) => {
               this.quote.set(null);
-              this.error.set(this.toUiError(httpError));
+              this.error.set(
+                toCheckoutUiError(
+                  httpError,
+                  'QUOTE_UNAVAILABLE',
+                  'No pudimos calcular los descuentos. Intenta nuevamente.',
+                ),
+              );
               this.status.set('error');
               return EMPTY;
             }),
@@ -86,17 +80,7 @@ export class CheckoutQuoteStore {
   reset(): void {
     this.quote.set(null);
     this.error.set(null);
+    this.appliedCoupon.set(null);
     this.status.set('idle');
-  }
-
-  private toUiError(httpError: unknown): CheckoutUiError {
-    if (httpError instanceof HttpErrorResponse && isApiError(httpError.error)) {
-      return { code: httpError.error.code, message: httpError.error.message };
-    }
-
-    return {
-      code: 'QUOTE_UNAVAILABLE',
-      message: 'No pudimos calcular los descuentos. Intenta nuevamente.',
-    };
   }
 }

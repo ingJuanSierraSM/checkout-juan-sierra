@@ -1,0 +1,52 @@
+<header class="success-header">
+  <a class="brand" routerLink="/" aria-label="DaviShop, inicio">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="currentColor"/><path d="M9 21v-7h6v7" fill="#c83f35"/></svg>
+    </span>
+    <span>DaviShop</span>
+  </a>
+  <span class="header-status">Compra confirmada</span>
+</header>
+
+<main class="success-page">
+  @if (checkoutProcess.completion(); as order) {
+    <section class="success-card" aria-labelledby="success-title">
+      <div class="success-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6"/></svg>
+      </div>
+      <p class="eyebrow">Compra confirmada</p>
+      <h1 id="success-title">¡Todo listo!</h1>
+      <p class="success-copy">Tu orden <strong>#{{ order.orderId }}</strong> fue registrada correctamente. Gracias por elegir DaviShop.</p>
+
+      <div class="order-meta">
+        <span>Orden #{{ order.orderId }}</span>
+        <span>{{ order.createdAt | date: 'd MMM y, h:mm a' }}</span>
+      </div>
+
+      @if (order.discountCapApplied) {
+        <div class="discount-cap-alert" role="status">
+          Aplicamos el límite máximo de {{ order.maximumDiscountPercentage }}% para proteger el valor de tu compra.
+        </div>
+      }
+
+      <section class="purchase-summary" aria-label="Resumen de la orden">
+        <div class="summary-row"><span>Subtotal original</span><strong>{{ order.originalSubtotal | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+        @for (discount of order.discounts; track discount.sequence) {
+          <div class="summary-row discount-row"><span>{{ discount.name }} ({{ discount.percentage }}%)</span><strong>−{{ discount.amount | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+        }
+        <div class="savings-row"><span>Ahorro total · {{ order.effectiveDiscountPercentage }}%</span><strong>−{{ order.totalDiscount | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+        <div class="final-total"><span>Total pagado</span><strong>{{ order.finalTotal | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+      </section>
+
+      <a class="continue-link" routerLink="/" (click)="startAnotherPurchase()">Seguir comprando</a>
+    </section>
+  } @else {
+    <section class="missing-result" aria-labelledby="missing-result-title">
+      <div class="missing-icon" aria-hidden="true">?</div>
+      <p class="eyebrow">DaviShop</p>
+      <h1 id="missing-result-title">No encontramos una compra reciente</h1>
+      <p>Regresa al catálogo para armar tu pedido y consultar tus descuentos.</p>
+      <a class="continue-link" routerLink="/">Ir al catálogo</a>
+    </section>
+  }
+</main>

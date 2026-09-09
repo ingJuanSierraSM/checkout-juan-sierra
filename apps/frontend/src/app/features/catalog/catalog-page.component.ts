@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { CartStore } from '../cart/cart.store';
+import { CheckoutProcessStore } from '../checkout/checkout-process.store';
 import { CheckoutQuoteStore } from '../checkout/checkout-quote.store';
 import { ProductApiService } from './product-api.service';
 import { ProductCardComponent } from './product-card.component';
@@ -22,6 +23,7 @@ export class CatalogPageComponent {
   readonly #destroyRef = inject(DestroyRef);
   readonly cart = inject(CartStore);
   readonly checkout = inject(CheckoutQuoteStore);
+  readonly checkoutProcess = inject(CheckoutProcessStore);
 
   readonly products = signal<readonly Product[]>([]);
   readonly status = signal<CatalogStatus>('loading');
@@ -55,22 +57,44 @@ export class CatalogPageComponent {
   }
 
   addToCart(product: Product): void {
+    if (this.checkoutProcess.isProcessing()) {
+      return;
+    }
+
     if (this.cart.add(product)) {
       this.checkout.refreshQuote();
     }
   }
 
   decreaseItem(productId: number): void {
+    if (this.checkoutProcess.isProcessing()) {
+      return;
+    }
+
     this.cart.decrease(productId);
+    if (this.cart.isEmpty()) {
+      this.couponCode.set('');
+    }
     this.checkout.refreshQuote();
   }
 
   removeItem(productId: number): void {
+    if (this.checkoutProcess.isProcessing()) {
+      return;
+    }
+
     this.cart.remove(productId);
+    if (this.cart.isEmpty()) {
+      this.couponCode.set('');
+    }
     this.checkout.refreshQuote();
   }
 
   applyCoupon(): void {
+    if (this.checkoutProcess.isProcessing()) {
+      return;
+    }
+
     this.checkout.applyCoupon(this.couponCode());
   }
 
@@ -83,8 +107,16 @@ export class CatalogPageComponent {
   }
 
   removeCoupon(): void {
+    if (this.checkoutProcess.isProcessing()) {
+      return;
+    }
+
     this.couponCode.set('');
     this.checkout.removeCoupon();
+  }
+
+  confirmCheckout(): void {
+    this.checkoutProcess.confirm();
   }
 
   openMobileCart(): void {

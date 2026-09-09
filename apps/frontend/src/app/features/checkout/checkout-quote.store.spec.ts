@@ -86,6 +86,7 @@ describe('CheckoutQuoteStore', () => {
     cart.clear();
     store.refreshQuote();
     expect(store.quote()).toBeNull();
+    expect(store.appliedCoupon()).toBeNull();
     expect(store.status()).toBe('idle');
   });
 

@@ -12,6 +12,7 @@ import { getCategoryLabel, Product } from './product.model';
 export class ProductCardComponent {
   readonly product = input.required<Product>();
   readonly quantityInCart = input(0);
+  readonly isCheckoutProcessing = input(false);
   readonly addToCart = output<Product>();
   readonly categoryLabel = computed(() => getCategoryLabel(this.product().category));
   readonly remainingStock = computed(() => this.product().stock - this.quantityInCart());

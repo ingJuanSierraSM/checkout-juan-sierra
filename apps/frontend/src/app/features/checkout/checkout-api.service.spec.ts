@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { API_BASE_URL } from '../../core/api/api.config';
 import { CheckoutApiService } from './checkout-api.service';
-import { CheckoutQuote, CheckoutQuoteRequest } from './checkout.model';
+import { CheckoutCompleted, CheckoutQuote, CheckoutQuoteRequest } from './checkout.model';
 
 describe('CheckoutApiService', () => {
   let service: CheckoutApiService;
@@ -49,5 +49,31 @@ describe('CheckoutApiService', () => {
     expect(httpRequest.request.method).toBe('POST');
     expect(httpRequest.request.body).toEqual(request);
     httpRequest.flush(quote);
+  });
+
+  it('sends the cart to the checkout endpoint to confirm the order', () => {
+    const request: CheckoutQuoteRequest = {
+      items: [{ productId: 1, quantity: 1 }],
+      couponCode: null,
+    };
+    const completion: CheckoutCompleted = {
+      orderId: 42,
+      createdAt: '2026-09-09T12:00:00Z',
+      originalSubtotal: 120,
+      discounts: [],
+      calculatedDiscountBeforeCap: 0,
+      totalDiscount: 0,
+      effectiveDiscountPercentage: 0,
+      finalTotal: 120,
+      discountCapApplied: false,
+      maximumDiscountPercentage: 35,
+    };
+
+    service.process(request).subscribe((response) => expect(response).toEqual(completion));
+
+    const httpRequest = httpTesting.expectOne('http://api.test/api/v1/checkout');
+    expect(httpRequest.request.method).toBe('POST');
+    expect(httpRequest.request.body).toEqual(request);
+    httpRequest.flush(completion, { status: 201, statusText: 'Created' });
   });
 });

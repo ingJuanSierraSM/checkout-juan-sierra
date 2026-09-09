@@ -29,6 +29,11 @@ export interface CheckoutQuote {
   readonly maximumDiscountPercentage: number;
 }
 
+export interface CheckoutCompleted extends CheckoutQuote {
+  readonly orderId: number;
+  readonly createdAt: string;
+}
+
 export interface CheckoutUiError {
   readonly code: string;
   readonly message: string;

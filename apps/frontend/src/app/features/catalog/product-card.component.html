@@ -31,8 +31,8 @@
     </p>
     <div class="product-footer">
       <strong>{{ product().unitPrice | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong>
-      <button type="button" [disabled]="!canAdd()" (click)="addToCart.emit(product())">
-        {{ canAdd() ? 'Agregar' : 'Máximo' }}
+      <button type="button" [disabled]="!canAdd() || isCheckoutProcessing()" (click)="addToCart.emit(product())">
+        {{ isCheckoutProcessing() ? 'En proceso…' : canAdd() ? 'Agregar' : 'Máximo' }}
       </button>
     </div>
   </div>
