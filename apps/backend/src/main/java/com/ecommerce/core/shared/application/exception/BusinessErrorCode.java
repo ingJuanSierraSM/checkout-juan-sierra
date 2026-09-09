@@ -2,7 +2,7 @@ package com.ecommerce.core.shared.application.exception;
 
 public enum BusinessErrorCode {
     PRODUCT_NOT_FOUND,
-    INACTIVE_PRODUCT,
+    PRODUCT_INACTIVE,
     INSUFFICIENT_STOCK,
     EMPTY_CART,
     INVALID_CART,

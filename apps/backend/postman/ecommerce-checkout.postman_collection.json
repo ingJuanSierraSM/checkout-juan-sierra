@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "b3a3d3c2-4e27-4b83-9b9b-77137d9e20ab",
     "name": "E-commerce Checkout - Local",
-    "description": "Colección para validar el catálogo, cotización, confirmación de compra e historial. Ejecutar en orden. Antes de repetir el checkout exitoso, ejecutar database/reset-database.sql en PostgreSQL.",
+    "description": "Colección para validar el catálogo, cotización, confirmación de compra e historial. Ejecutar en orden. Antes de repetir el checkout exitoso, ejecutar apps/backend/database/reset-database.sql en PostgreSQL.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -171,7 +171,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('responde 200 y crea una orden', () => pm.response.to.have.status(200));",
+                  "pm.test('responde 201 y crea una orden', () => pm.response.to.have.status(201));",
                   "const response = pm.response.json();",
                   "pm.collectionVariables.set('orderId', response.orderId);",
                   "pm.test('guarda el total calculado', () => pm.expect(response.finalTotal).to.eql(87.21));"

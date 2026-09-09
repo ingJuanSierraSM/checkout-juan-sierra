@@ -1,46 +1,70 @@
-# E-commerce Checkout
+# 👨‍💻 Autor: Juan Sierra M.
 
-Backend de una prueba técnica para un checkout de e-commerce. Calcula descuentos secuenciales, aplica un límite configurable, valida inventario y cupones, y persiste órdenes en PostgreSQL.
+### Software Engineer
 
-## Tecnologías
+# 🛒 DaviShop · Core E-Commerce Checkout
 
-- Java 21
-- Spring Boot 4.1.1
-- Spring Web MVC, Validation y Data JPA
-- PostgreSQL
-- Maven Wrapper y JaCoCo
+Aplicación Full Stack para un checkout de e-commerce con descuentos acumulativos, límite máximo de ahorro, control de inventario, cupón de un solo uso e historial de órdenes. El repositorio es un monorepo con Angular en el frontend y Spring Boot en el backend.
 
-## Requisitos previos
+## ✨ Capacidades principales
 
-- JDK 21 instalado y disponible en `PATH`.
-- PostgreSQL en ejecución.
-- Una base de datos local llamada `ecommerce_db`.
+- Catálogo reactivo con productos, categoría, precio y stock disponible.
+- Carrito con cantidades, subtotal original y validación de stock en la interfaz.
+- Cotización sin efectos secundarios mediante descuentos secuenciales: categoría, volumen y cupón.
+- Límite absoluto de descuento y alerta visual persistente cuando el backend lo informa.
+- Confirmación transaccional que vuelve a validar los recursos, disminuye inventario, consume el cupón y persiste snapshots de la orden.
+- Historial y detalle de órdenes.
+- Tipado estricto de TypeScript y contratos HTTP explícitos.
 
-La configuración local por defecto está en `apps/backend/src/main/resources/application.properties`:
+La arquitectura, los diagramas y los trade-offs están en [docs/arquitectura.md](docs/arquitectura.md). La evidencia de uso responsable de IA está en [docs/ia.md](docs/ia.md).
 
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/ecommerce_db
-spring.datasource.username=postgres
-spring.datasource.password=root
-```
+## 🧰 Tecnologías
 
-Estos valores se dejaron de forma explícita para la prueba técnica. No deben usarse como patrón para producción.
+| Capa | Tecnologías |
+| --- | --- |
+| Frontend | Angular 22, TypeScript estricto, Signals, RxJS, SCSS, Vitest y cobertura V8 |
+| Backend | Java 21, Spring Boot 4.1.1, Spring Web MVC, Validation, Spring Data JPA y Maven Wrapper |
+| Persistencia | PostgreSQL para ejecución local; H2 aislado para pruebas backend |
+| Calidad | JaCoCo para el núcleo backend y cobertura V8 para el frontend |
 
-## Preparar la base de datos
+## ✅ Requisitos previos
 
-En el gestor de PostgreSQL, conectado como un usuario con permiso para crear bases, ejecutar una sola vez:
+- JDK 21 disponible en `PATH`.
+- Node.js compatible con npm 11.
+- PostgreSQL en ejecución en `localhost:5432`.
+- Opcional: Postman para importar la colección de pruebas HTTP.
+
+## 🚀 Inicio rápido
+
+### 1. 🗃️ Crear la base de datos
+
+Conéctate a PostgreSQL como un usuario con permiso para crear bases y ejecuta una sola vez:
 
 ```sql
 CREATE DATABASE ecommerce_db;
 ```
 
-Después, al arrancar el backend, Spring Boot ejecuta automáticamente `database/schema.sql` y `database/data.sql`. Ambos scripts son idempotentes: crean el esquema y los datos semilla si todavía no existen.
+La configuración local intencionalmente explícita para la prueba está en [application.properties](apps/backend/src/main/resources/application.properties):
 
-Si se prefiere ejecutar los scripts manualmente en el gestor, abrir y ejecutar primero [schema.sql](database/schema.sql) y luego [data.sql](database/data.sql), conectándose a `ecommerce_db`.
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/ecommerce_db
+spring.datasource.username=postgres
+spring.datasource.password=${DB_PASSWORD:root}
+```
 
-Para restaurar el estado de demostración tras crear órdenes o consumir el cupón, ejecutar [reset-database.sql](database/reset-database.sql). Este script elimina únicamente las órdenes de la demo y restablece inventario, cupón y política.
+> Por razones académicas, `DB_PASSWORD` es opcional y usa `root` como respaldo. Así la demo local funciona sin crear variables de entorno; no representa una configuración de producción.
 
-## Ejecutar la API
+Si deseas usar una contraseña diferente durante tu sesión de PowerShell, define la variable antes de iniciar el backend:
+
+```powershell
+$env:DB_PASSWORD = 'tu-contraseña-local'
+```
+
+Al iniciar el backend desde `apps/backend`, Spring ejecuta automáticamente [schema.sql](apps/backend/database/schema.sql) y [data.sql](apps/backend/database/data.sql). Los scripts son idempotentes, por lo que crean el esquema y los datos semilla sin duplicarlos.
+
+Si prefieres ejecutarlos desde tu gestor de base de datos, conéctate a `ecommerce_db` y ejecuta primero `apps/backend/database/schema.sql` y después `apps/backend/database/data.sql`.
+
+### 2. ⚙️ Iniciar el backend
 
 Desde la raíz del repositorio:
 
@@ -49,56 +73,96 @@ cd apps/backend
 .\mvnw.cmd spring-boot:run
 ```
 
-La API queda disponible en `http://localhost:8080/api/v1`.
+La API quedará disponible en `http://localhost:8080/api/v1`. El CORS local permite `http://localhost:4200`.
 
-## Endpoints principales
+### 3. 🖥️ Iniciar el frontend
 
-| Método | Ruta | Descripción |
+En otra terminal, desde la raíz:
+
+```powershell
+cd apps/frontend
+npm ci
+npm run start
+```
+
+Abre `http://localhost:4200` en el navegador.
+
+## 🎬 Flujo de demostración
+
+1. Agrega productos desde el catálogo; el carrito actualiza cantidades y subtotal.
+2. Combina productos de tecnología y supera $100 para visualizar categoría y volumen.
+3. Ingresa `WELCOME2026` y pulsa **Aplicar** para agregar el descuento de cupón.
+4. Confirma la compra. El backend devuelve una orden persistida y el frontend muestra su resultado.
+5. Abre **Mis órdenes** para consultar el listado y el detalle.
+
+`WELCOME2026` se consume al confirmar una orden. Para restaurar inventario, cupón, política y órdenes de demostración, ejecuta [reset-database.sql](apps/backend/database/reset-database.sql) sobre `ecommerce_db`.
+
+> Con las reglas fijas de 10%, 5% y 15% aplicadas en cascada, el máximo matemático de los datos estándar es 27.325%. Por esa razón el tope de 35% no se activa con el seed por defecto; el backend y el frontend sí cubren el caso cuando una política o respuesta lo indique.
+
+## 🔌 Endpoints
+
+| Método | Ruta | Efecto |
 | --- | --- | --- |
-| `GET` | `/products` | Catálogo de productos activos. |
-| `POST` | `/checkout/quote` | Calcula una cotización sin modificar datos. |
-| `POST` | `/checkout` | Confirma una compra, descuenta inventario, consume cupón y guarda la orden. |
-| `GET` | `/orders` | Historial de órdenes, de más reciente a más antigua. |
-| `GET` | `/orders/{orderId}` | Detalle de una orden con ítems y descuentos. |
+| `GET` | `/products` | Obtiene el catálogo activo. |
+| `POST` | `/checkout/quote` | Calcula descuentos sin consumir stock, cupón ni crear órdenes. |
+| `POST` | `/checkout` | Revalida, bloquea recursos, confirma la compra y devuelve el resumen. |
+| `GET` | `/orders` | Consulta las órdenes persistidas. |
+| `GET` | `/orders/{orderId}` | Consulta ítems y descuentos de una orden. |
 
-Ejemplo de cuerpo para cotizar o confirmar:
+Ejemplo para cotizar o confirmar:
 
 ```json
 {
   "items": [
-    { "productId": 1, "quantity": 1 }
+    { "productId": 1, "quantity": 1 },
+    { "productId": 2, "quantity": 1 }
   ],
   "couponCode": "WELCOME2026"
 }
 ```
 
-El endpoint de cotización no consume inventario, cupones ni crea órdenes. La confirmación reconsulta los recursos dentro de una transacción y usa bloqueos pesimistas para evitar que un producto o cupón se confirme con un estado obsoleto.
+## 🧪 Pruebas y cobertura
 
-## Reglas de descuento
-
-1. Los productos de tecnología reciben 10%.
-2. Si el total restante es estrictamente mayor a $100, recibe 5% adicional.
-3. Un cupón válido se aplica sobre el total restante.
-4. El descuento total queda limitado por la política `MAX_TOTAL_DISCOUNT_PERCENTAGE`, inicialmente en 35%.
-
-Los descuentos son secuenciales; nunca se suman porcentajes directamente.
-
-## Pruebas y cobertura
+### ☕ Backend
 
 ```powershell
 cd apps/backend
-.\mvnw.cmd clean verify
+.\mvnw.cmd verify
 ```
 
-El comando ejecuta las pruebas unitarias e integración, genera el reporte JaCoCo en `apps/backend/target/site/jacoco/index.html` y exige como mínimo 80% de cobertura de líneas para la lógica crítica de checkout. La verificación actual alcanza 95,2% en ese alcance.
+La suite utiliza H2 aislado para no modificar PostgreSQL local y JaCoCo exige al menos 80% de cobertura de líneas para el núcleo de checkout. Si el backend está ejecutándose en Windows, usa `verify` como arriba; para `clean verify`, primero detén el proceso porque puede mantener bloqueado un archivo de `target`.
 
-## Postman
+El reporte se genera en `apps/backend/target/site/jacoco/index.html`.
 
-Importar [ecommerce-checkout.postman_collection.json](postman/ecommerce-checkout.postman_collection.json) en Postman. La colección guarda automáticamente el `orderId` de la compra confirmada para consultar su detalle.
+### 🅰️ Frontend
 
-Antes de volver a ejecutar el caso que consume `WELCOME2026`, restablecer la demo con [reset-database.sql](database/reset-database.sql).
+```powershell
+cd apps/frontend
+npm run test:coverage
+npm run build
+```
 
-## Documentación adicional
+La suite usa Vitest, TestBed y cobertura V8. El comando de cobertura actual supera el 80% requerido en la lógica esencial de carrito y checkout.
 
-- [Arquitectura](docs/arquitectura.md)
-- [Gobernanza y bitácora de IA](docs/ia.md)
+## 📮 Colección Postman
+
+Importa [ecommerce-checkout.postman_collection.json](apps/backend/postman/ecommerce-checkout.postman_collection.json). Incluye catálogo, cotización, confirmación, consulta de órdenes y casos de error. La colección guarda el `orderId` creado para consultar su detalle.
+
+## 🗂️ Estructura del repositorio
+
+```text
+.
+├── apps/
+│   ├── backend/                 # Spring Boot: módulos hexagonales pragmáticos
+│   │   ├── database/            # Esquema, seed y reinicio de demo PostgreSQL
+│   │   └── postman/             # Colección de validación HTTP
+│   └── frontend/                # Angular: organización modular por feature
+├── docs/                        # Arquitectura y gobernanza de IA
+└── .ai/                         # Skill y agente definidos para la revisión
+```
+
+## 📚 Documentación
+
+- [Arquitectura, diagramas y decisiones](docs/arquitectura.md)
+- [Gobernanza, skill, agente y bitácora de IA](docs/ia.md)
+- [Colección Postman](apps/backend/postman/ecommerce-checkout.postman_collection.json)

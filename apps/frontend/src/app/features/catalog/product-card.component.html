@@ -1,0 +1,39 @@
+<article class="product-card">
+  <div class="product-visual" [class]="'product-visual product-visual--' + product().id" role="img" [attr.aria-label]="product().name">
+    @switch (product().id) {
+      @case (1) {
+        <svg viewBox="0 0 160 116" aria-hidden="true"><rect x="33" y="19" width="94" height="61" rx="6" fill="#30343c"/><rect x="39" y="25" width="82" height="48" rx="3" fill="#d8e5ec"/><path d="M20 88h120l-10 11H30z" fill="#666c76"/><path d="M62 88h36l3 4H59z" fill="#2b3037"/></svg>
+      }
+      @case (2) {
+        <svg viewBox="0 0 160 116" aria-hidden="true"><rect x="58" y="12" width="44" height="92" rx="9" fill="#272c34"/><rect x="62" y="19" width="36" height="76" rx="5" fill="#d8e8ee"/><circle cx="80" cy="99" r="2.5" fill="#a9b0b7"/></svg>
+      }
+      @case (3) {
+        <svg viewBox="0 0 160 116" aria-hidden="true"><path d="M45 72V55c0-29 70-29 70 0v17" fill="none" stroke="#2d333a" stroke-width="13" stroke-linecap="round"/><rect x="35" y="67" width="25" height="32" rx="10" fill="#4a5159"/><rect x="100" y="67" width="25" height="32" rx="10" fill="#4a5159"/></svg>
+      }
+      @case (4) {
+        <svg viewBox="0 0 160 116" aria-hidden="true"><path d="M52 21h55v44H52z" fill="#a57a5d"/><path d="M46 64h67v11H46z" fill="#69493b"/><path d="M54 75l-8 28M105 75l9 28" stroke="#4b3a33" stroke-width="6" stroke-linecap="round"/><path d="M51 28h57" stroke="#d9b093" stroke-width="6"/></svg>
+      }
+      @case (5) {
+        <svg viewBox="0 0 160 116" aria-hidden="true"><rect x="50" y="35" width="58" height="61" rx="9" fill="#bd4a3f"/><rect x="60" y="20" width="38" height="28" rx="5" fill="#e7d8cf"/><circle cx="79" cy="69" r="15" fill="#3e3533"/><path d="M58 100h42" stroke="#8f322a" stroke-width="8" stroke-linecap="round"/></svg>
+      }
+      @default {
+        <svg viewBox="0 0 160 116" aria-hidden="true"><path d="M50 35h60l7 65H43z" fill="#a9493e"/><path d="M61 35v-9c0-17 38-17 38 0v9" fill="none" stroke="#80332d" stroke-width="8"/><path d="M50 49h60" stroke="#e8b69e" stroke-width="4"/></svg>
+      }
+    }
+  </div>
+
+  <div class="product-content">
+    <div class="product-category">{{ categoryLabel() }}</div>
+    <h2>{{ product().name }}</h2>
+    <p class="product-stock">
+      <span class="stock-indicator"></span>
+      {{ remainingStock() }} unidades disponibles
+    </p>
+    <div class="product-footer">
+      <strong>{{ product().unitPrice | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong>
+      <button type="button" [disabled]="!canAdd() || isCheckoutProcessing()" (click)="addToCart.emit(product())">
+        {{ actionLabel() }}
+      </button>
+    </div>
+  </div>
+</article>

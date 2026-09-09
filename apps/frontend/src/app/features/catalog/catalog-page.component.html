@@ -1,0 +1,197 @@
+<header class="store-header">
+  <a class="brand" routerLink="/" aria-label="DaviShop, inicio">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="currentColor"/><path d="M9 21v-7h6v7" fill="#c83f35"/></svg>
+    </span>
+    <span>DaviShop</span>
+  </a>
+
+  <nav aria-label="Navegación principal">
+    <a aria-current="page" routerLink="/">Productos</a>
+    <a routerLink="/orders">Mis órdenes</a>
+  </nav>
+
+  <div class="header-cart" [attr.aria-label]="cart.itemCount() + ' productos en el carrito'">
+    <svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 10.1a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.4L21 7H7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><circle cx="10" cy="20" r="1.25" fill="currentColor"/><circle cx="18" cy="20" r="1.25" fill="currentColor"/></svg>
+    <span class="header-cart-label">Carrito</span>
+    <span class="cart-badge">{{ cart.itemCount() }}</span>
+  </div>
+</header>
+
+<main class="catalog-layout">
+  <section class="catalog-content" aria-labelledby="catalog-title">
+    <p class="eyebrow">Compra inteligente</p>
+    <div class="catalog-heading">
+      <div>
+        <h1 id="catalog-title">Encuentra lo que necesitas.</h1>
+        <p>Arma tu compra y descubre descuentos que se acumulan contigo.</p>
+      </div>
+      @if (status() === 'ready') {
+        <span class="catalog-count">{{ productCount() }} productos</span>
+      }
+    </div>
+
+    @if (status() === 'loading') {
+      <section class="product-grid" aria-label="Cargando catálogo" aria-busy="true">
+        @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+          <div class="product-skeleton">
+            <div class="skeleton-visual"></div>
+            <div class="skeleton-content"><span></span><span></span><span></span></div>
+          </div>
+        }
+      </section>
+    } @else if (status() === 'error') {
+      <section class="catalog-feedback" role="alert">
+        <div class="feedback-icon" aria-hidden="true">!</div>
+        <h2>No pudimos cargar el catálogo</h2>
+        <p>Verifica que el backend esté en ejecución y vuelve a intentarlo.</p>
+        <button type="button" (click)="loadProducts()">Reintentar</button>
+      </section>
+    } @else if (products().length === 0) {
+      <section class="catalog-feedback">
+        <div class="feedback-icon" aria-hidden="true">⌑</div>
+        <h2>Aún no hay productos disponibles</h2>
+        <p>Vuelve pronto para conocer las novedades de DaviShop.</p>
+      </section>
+    } @else {
+      <section class="product-grid" aria-label="Productos disponibles">
+        @for (product of products(); track product.id) {
+          <app-product-card
+            [product]="product"
+            [quantityInCart]="cart.quantityFor(product.id)"
+            [isCheckoutProcessing]="checkoutProcess.isProcessing()"
+            (addToCart)="addToCart($event)"
+          />
+        }
+      </section>
+    }
+  </section>
+
+  <aside class="cart-preview" aria-label="Resumen del carrito">
+    <div class="cart-preview-heading">
+      <div>
+        <span class="cart-preview-kicker">Tu selección</span>
+        <h2>Carrito</h2>
+      </div>
+      <span class="cart-preview-count">{{ cart.itemCount() }}</span>
+    </div>
+
+    @if (cart.isEmpty()) {
+      <div class="empty-cart-preview">
+        <div class="empty-cart-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.2 10.1a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.4L21 7H7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><circle cx="10" cy="20" r="1.25" fill="currentColor"/><circle cx="18" cy="20" r="1.25" fill="currentColor"/></svg></div>
+        <strong>Tu carrito está esperando</strong>
+        <p>Agrega productos para ver tu ahorro en tiempo real.</p>
+      </div>
+    } @else {
+      <ul class="cart-item-list">
+        @for (item of cart.items(); track item.product.id) {
+          <li class="cart-item">
+            <div class="cart-item-art" [class]="'cart-item-art cart-item-art--' + item.product.id">{{ item.product.name.charAt(0) }}</div>
+            <div class="cart-item-copy">
+              <strong>{{ item.product.name }}</strong>
+              <span>{{ item.product.unitPrice | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</span>
+              <div class="quantity-control" [attr.aria-label]="'Cantidad de ' + item.product.name">
+                <button type="button" (click)="decreaseItem(item.product.id)" [disabled]="checkoutProcess.isProcessing()" [attr.aria-label]="'Reducir ' + item.product.name">−</button>
+                <span>{{ item.quantity }}</span>
+                <button type="button" (click)="addToCart(item.product)" [disabled]="item.quantity >= item.product.stock || checkoutProcess.isProcessing()" [attr.aria-label]="'Aumentar ' + item.product.name">+</button>
+              </div>
+            </div>
+            <button class="remove-item" type="button" (click)="removeItem(item.product.id)" [disabled]="checkoutProcess.isProcessing()" [attr.aria-label]="'Eliminar ' + item.product.name">×</button>
+          </li>
+        }
+      </ul>
+
+      <div class="coupon-entry">
+        <label for="coupon-code">Código de descuento</label>
+        <div class="coupon-input-row">
+          <input id="coupon-code" type="text" autocomplete="off" placeholder="WELCOME2026" [value]="couponCode()" (input)="updateCoupon($event)" [disabled]="checkout.status() === 'loading' || checkoutProcess.isProcessing()" />
+          <button type="button" (click)="applyCoupon()" [disabled]="checkout.status() === 'loading' || checkoutProcess.isProcessing()">Aplicar</button>
+        </div>
+        @if (checkout.appliedCoupon(); as coupon) {
+          <div class="applied-coupon"><span>{{ coupon }}</span><button type="button" (click)="removeCoupon()" [disabled]="checkoutProcess.isProcessing()" aria-label="Quitar cupón">×</button></div>
+        }
+      </div>
+
+      @if (checkout.status() === 'loading') {
+        <p class="quote-status" aria-live="polite">Actualizando tu ahorro…</p>
+      }
+      @if (checkout.error(); as error) {
+        <div class="quote-error" role="alert"><strong>No pudimos aplicar el cupón.</strong><span>{{ error.message }}</span></div>
+      }
+
+      @if (checkout.quote(); as quote) {
+        <section class="price-breakdown" aria-label="Desglose de descuentos">
+          <div class="price-row"><span>Subtotal original</span><strong>{{ quote.originalSubtotal | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+          @for (discount of quote.discounts; track discount.sequence) {
+            <div class="price-row discount-row"><span>{{ discount.name }} ({{ discount.percentage }}%)</span><strong>−{{ discount.amount | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+          }
+          <div class="savings-row"><span>Ahorro total · {{ quote.effectiveDiscountPercentage }}%</span><strong>−{{ quote.totalDiscount | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+          <div class="final-total"><span>Total a pagar</span><strong>{{ quote.finalTotal | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+        </section>
+        @if (quote.discountCapApplied) {
+          <div class="discount-cap-alert" role="status">¡Enhorabuena! Has alcanzado el límite máximo de ahorro permitido ({{ quote.maximumDiscountPercentage }}%).</div>
+        }
+      }
+      @if (checkoutProcess.isProcessing()) {
+        <p class="quote-status" aria-live="polite">Estamos confirmando tu compra…</p>
+      }
+      @if (checkoutProcess.error(); as error) {
+        <div class="quote-error" role="alert"><strong>No pudimos confirmar tu compra.</strong><span>{{ error.message }}</span></div>
+      }
+    }
+
+    <button type="button" (click)="confirmCheckout()" [disabled]="cart.isEmpty() || checkout.status() !== 'ready' || checkoutProcess.isProcessing()">{{ checkoutProcess.isProcessing() ? 'Confirmando…' : 'Continuar compra' }}</button>
+  </aside>
+</main>
+
+<button class="mobile-cart-bar" type="button" (click)="openMobileCart()" [attr.aria-expanded]="mobileCartOpen()">
+  <div><span>Carrito · {{ cart.itemCount() }} productos</span><strong>{{ displayedTotal() | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+  <span class="mobile-cart-count">{{ cart.itemCount() }}</span>
+</button>
+
+@if (mobileCartOpen()) {
+  <div class="mobile-cart-backdrop" (click)="closeMobileCart()"></div>
+  <section class="mobile-cart-sheet" aria-label="Carrito de compras">
+    <div class="mobile-sheet-heading">
+      <div><span class="cart-preview-kicker">Tu selección</span><h2>Carrito</h2></div>
+      <button type="button" (click)="closeMobileCart()" aria-label="Cerrar carrito">×</button>
+    </div>
+    @if (cart.isEmpty()) {
+      <div class="empty-mobile-cart"><strong>Tu carrito está esperando</strong><p>Agrega productos desde el catálogo.</p></div>
+    } @else {
+      <ul class="mobile-cart-items">
+        @for (item of cart.items(); track item.product.id) {
+          <li>
+            <div><strong>{{ item.product.name }}</strong><span>{{ item.product.unitPrice | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</span></div>
+            <div class="quantity-control" [attr.aria-label]="'Cantidad de ' + item.product.name">
+              <button type="button" (click)="decreaseItem(item.product.id)" [disabled]="checkoutProcess.isProcessing()" [attr.aria-label]="'Reducir ' + item.product.name">−</button>
+              <span>{{ item.quantity }}</span>
+              <button type="button" (click)="addToCart(item.product)" [disabled]="item.quantity >= item.product.stock || checkoutProcess.isProcessing()" [attr.aria-label]="'Aumentar ' + item.product.name">+</button>
+            </div>
+          </li>
+        }
+      </ul>
+      <div class="mobile-coupon-entry">
+        <label for="mobile-coupon-code">Código de descuento</label>
+        <div class="coupon-input-row">
+          <input id="mobile-coupon-code" type="text" autocomplete="off" placeholder="WELCOME2026" [value]="couponCode()" (input)="updateCoupon($event)" [disabled]="checkout.status() === 'loading' || checkoutProcess.isProcessing()" />
+          <button type="button" (click)="applyCoupon()" [disabled]="checkout.status() === 'loading' || checkoutProcess.isProcessing()">Aplicar</button>
+        </div>
+        @if (checkout.error(); as error) {
+          <div class="quote-error" role="alert"><strong>No pudimos aplicar el cupón.</strong><span>{{ error.message }}</span></div>
+        }
+      </div>
+      @if (checkout.quote(); as quote) {
+        <div class="mobile-discount-summary"><span>Ahorro total · {{ quote.effectiveDiscountPercentage }}%</span><strong>−{{ quote.totalDiscount | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+        @if (quote.discountCapApplied) {
+          <div class="discount-cap-alert" role="status">¡Enhorabuena! Has alcanzado el límite máximo de ahorro permitido ({{ quote.maximumDiscountPercentage }}%).</div>
+        }
+      }
+    }
+    @if (checkoutProcess.error(); as error) {
+      <div class="quote-error" role="alert"><strong>No pudimos confirmar tu compra.</strong><span>{{ error.message }}</span></div>
+    }
+    <div class="mobile-sheet-total"><span>Total a pagar</span><strong>{{ displayedTotal() | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+    <button class="mobile-checkout-button" type="button" (click)="confirmCheckout()" [disabled]="cart.isEmpty() || checkout.status() !== 'ready' || checkoutProcess.isProcessing()">{{ checkoutProcess.isProcessing() ? 'Confirmando…' : 'Continuar compra' }}</button>
+  </section>
+}
