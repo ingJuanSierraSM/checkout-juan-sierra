@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,7 +24,18 @@ class GetProductsServiceTest {
                 true,
                 "/products/laptop-pro.webp"
         );
-        GetProductsService service = new GetProductsService(() -> List.of(product));
+        ProductRepository repository = new ProductRepository() {
+            @Override
+            public List<Product> findActiveProducts() {
+                return List.of(product);
+            }
+
+            @Override
+            public Optional<Product> findById(Long id) {
+                return Optional.of(product);
+            }
+        };
+        GetProductsService service = new GetProductsService(repository);
 
         List<Product> result = service.getActiveProducts();
 
