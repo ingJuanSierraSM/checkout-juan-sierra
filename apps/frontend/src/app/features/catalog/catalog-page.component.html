@@ -90,27 +90,52 @@
               <strong>{{ item.product.name }}</strong>
               <span>{{ item.product.unitPrice | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</span>
               <div class="quantity-control" [attr.aria-label]="'Cantidad de ' + item.product.name">
-                <button type="button" (click)="cart.decrease(item.product.id)" [attr.aria-label]="'Reducir ' + item.product.name">−</button>
+                <button type="button" (click)="decreaseItem(item.product.id)" [attr.aria-label]="'Reducir ' + item.product.name">−</button>
                 <span>{{ item.quantity }}</span>
-                <button type="button" (click)="cart.add(item.product)" [disabled]="item.quantity >= item.product.stock" [attr.aria-label]="'Aumentar ' + item.product.name">+</button>
+                <button type="button" (click)="addToCart(item.product)" [disabled]="item.quantity >= item.product.stock" [attr.aria-label]="'Aumentar ' + item.product.name">+</button>
               </div>
             </div>
-            <button class="remove-item" type="button" (click)="cart.remove(item.product.id)" [attr.aria-label]="'Eliminar ' + item.product.name">×</button>
+            <button class="remove-item" type="button" (click)="removeItem(item.product.id)" [attr.aria-label]="'Eliminar ' + item.product.name">×</button>
           </li>
         }
       </ul>
+
+      <div class="coupon-entry">
+        <label for="coupon-code">Código de descuento</label>
+        <div class="coupon-input-row">
+          <input id="coupon-code" type="text" autocomplete="off" placeholder="WELCOME2026" [value]="couponCode()" (input)="updateCoupon($event)" [disabled]="checkout.status() === 'loading'" />
+          <button type="button" (click)="applyCoupon()" [disabled]="checkout.status() === 'loading'">Aplicar</button>
+        </div>
+        @if (checkout.appliedCoupon(); as coupon) {
+          <div class="applied-coupon"><span>{{ coupon }}</span><button type="button" (click)="removeCoupon()" aria-label="Quitar cupón">×</button></div>
+        }
+      </div>
+
+      @if (checkout.status() === 'loading') {
+        <p class="quote-status" aria-live="polite">Actualizando tu ahorro…</p>
+      }
+      @if (checkout.error(); as error) {
+        <div class="quote-error" role="alert"><strong>No pudimos aplicar el cupón.</strong><span>{{ error.message }}</span></div>
+      }
+
+      @if (checkout.quote(); as quote) {
+        <section class="price-breakdown" aria-label="Desglose de descuentos">
+          <div class="price-row"><span>Subtotal original</span><strong>{{ quote.originalSubtotal | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+          @for (discount of quote.discounts; track discount.sequence) {
+            <div class="price-row discount-row"><span>{{ discount.name }} ({{ discount.percentage }}%)</span><strong>−{{ discount.amount | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+          }
+          <div class="savings-row"><span>Ahorro total · {{ quote.effectiveDiscountPercentage }}%</span><strong>−{{ quote.totalDiscount | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+          <div class="final-total"><span>Total a pagar</span><strong>{{ quote.finalTotal | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+        </section>
+      }
     }
 
-    <div class="cart-preview-total">
-      <span>Subtotal</span>
-      <strong>{{ cart.originalSubtotal() | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong>
-    </div>
-    <button type="button" [disabled]="cart.isEmpty()">Continuar compra</button>
+    <button type="button" [disabled]="cart.isEmpty() || checkout.status() !== 'ready'">Continuar compra</button>
   </aside>
 </main>
 
 <button class="mobile-cart-bar" type="button" (click)="openMobileCart()" [attr.aria-expanded]="mobileCartOpen()">
-  <div><span>Carrito · {{ cart.itemCount() }} productos</span><strong>{{ cart.originalSubtotal() | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+  <div><span>Carrito · {{ cart.itemCount() }} productos</span><strong>{{ displayedTotal() | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
   <span class="mobile-cart-count">{{ cart.itemCount() }}</span>
 </button>
 
@@ -129,15 +154,28 @@
           <li>
             <div><strong>{{ item.product.name }}</strong><span>{{ item.product.unitPrice | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</span></div>
             <div class="quantity-control" [attr.aria-label]="'Cantidad de ' + item.product.name">
-              <button type="button" (click)="cart.decrease(item.product.id)" [attr.aria-label]="'Reducir ' + item.product.name">−</button>
+              <button type="button" (click)="decreaseItem(item.product.id)" [attr.aria-label]="'Reducir ' + item.product.name">−</button>
               <span>{{ item.quantity }}</span>
-              <button type="button" (click)="cart.add(item.product)" [disabled]="item.quantity >= item.product.stock" [attr.aria-label]="'Aumentar ' + item.product.name">+</button>
+              <button type="button" (click)="addToCart(item.product)" [disabled]="item.quantity >= item.product.stock" [attr.aria-label]="'Aumentar ' + item.product.name">+</button>
             </div>
           </li>
         }
       </ul>
+      <div class="mobile-coupon-entry">
+        <label for="mobile-coupon-code">Código de descuento</label>
+        <div class="coupon-input-row">
+          <input id="mobile-coupon-code" type="text" autocomplete="off" placeholder="WELCOME2026" [value]="couponCode()" (input)="updateCoupon($event)" [disabled]="checkout.status() === 'loading'" />
+          <button type="button" (click)="applyCoupon()" [disabled]="checkout.status() === 'loading'">Aplicar</button>
+        </div>
+        @if (checkout.error(); as error) {
+          <div class="quote-error" role="alert"><strong>No pudimos aplicar el cupón.</strong><span>{{ error.message }}</span></div>
+        }
+      </div>
+      @if (checkout.quote(); as quote) {
+        <div class="mobile-discount-summary"><span>Ahorro total · {{ quote.effectiveDiscountPercentage }}%</span><strong>−{{ quote.totalDiscount | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+      }
     }
-    <div class="mobile-sheet-total"><span>Subtotal</span><strong>{{ cart.originalSubtotal() | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
-    <button class="mobile-checkout-button" type="button" [disabled]="cart.isEmpty()">Continuar compra</button>
+    <div class="mobile-sheet-total"><span>Total a pagar</span><strong>{{ displayedTotal() | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+    <button class="mobile-checkout-button" type="button" [disabled]="cart.isEmpty() || checkout.status() !== 'ready'">Continuar compra</button>
   </section>
 }

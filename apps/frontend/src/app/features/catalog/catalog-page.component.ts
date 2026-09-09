@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { CartStore } from '../cart/cart.store';
+import { CheckoutQuoteStore } from '../checkout/checkout-quote.store';
 import { ProductApiService } from './product-api.service';
 import { ProductCardComponent } from './product-card.component';
 import { Product } from './product.model';
@@ -20,11 +21,16 @@ export class CatalogPageComponent {
   readonly #productsApi = inject(ProductApiService);
   readonly #destroyRef = inject(DestroyRef);
   readonly cart = inject(CartStore);
+  readonly checkout = inject(CheckoutQuoteStore);
 
   readonly products = signal<readonly Product[]>([]);
   readonly status = signal<CatalogStatus>('loading');
   readonly productCount = computed(() => this.products().length);
+  readonly displayedTotal = computed(
+    () => this.checkout.quote()?.finalTotal ?? this.cart.originalSubtotal(),
+  );
   readonly mobileCartOpen = signal(false);
+  readonly couponCode = signal('');
 
   constructor() {
     this.loadProducts();
@@ -49,7 +55,36 @@ export class CatalogPageComponent {
   }
 
   addToCart(product: Product): void {
-    this.cart.add(product);
+    if (this.cart.add(product)) {
+      this.checkout.refreshQuote();
+    }
+  }
+
+  decreaseItem(productId: number): void {
+    this.cart.decrease(productId);
+    this.checkout.refreshQuote();
+  }
+
+  removeItem(productId: number): void {
+    this.cart.remove(productId);
+    this.checkout.refreshQuote();
+  }
+
+  applyCoupon(): void {
+    this.checkout.applyCoupon(this.couponCode());
+  }
+
+  updateCoupon(event: Event): void {
+    const target = event.target;
+
+    if (target instanceof HTMLInputElement) {
+      this.couponCode.set(target.value);
+    }
+  }
+
+  removeCoupon(): void {
+    this.couponCode.set('');
+    this.checkout.removeCoupon();
   }
 
   openMobileCart(): void {

@@ -1,8 +1,11 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { CartStore } from '../cart/cart.store';
+import { CheckoutQuoteStore } from '../checkout/checkout-quote.store';
+import { CheckoutQuote, CheckoutUiError } from '../checkout/checkout.model';
 import { CatalogPageComponent } from './catalog-page.component';
 import { ProductApiService } from './product-api.service';
 import { Product } from './product.model';
@@ -11,6 +14,15 @@ describe('CatalogPageComponent', () => {
   let fixture: ComponentFixture<CatalogPageComponent>;
   let getProducts: ReturnType<typeof vi.fn<() => Observable<readonly Product[]>>>;
   let cart: CartStore;
+  const checkoutStore = {
+    quote: signal<CheckoutQuote | null>(null),
+    status: signal<'idle' | 'loading' | 'ready' | 'error'>('idle'),
+    error: signal<CheckoutUiError | null>(null),
+    appliedCoupon: signal<string | null>(null),
+    refreshQuote: vi.fn(),
+    applyCoupon: vi.fn(),
+    removeCoupon: vi.fn(),
+  };
 
   const products: readonly Product[] = [
     {
@@ -71,11 +83,19 @@ describe('CatalogPageComponent', () => {
       providers: [
         provideRouter([]),
         { provide: ProductApiService, useValue: { getProducts } },
+        { provide: CheckoutQuoteStore, useValue: checkoutStore },
       ],
     }).compileComponents();
 
     cart = TestBed.inject(CartStore);
     cart.clear();
+    checkoutStore.quote.set(null);
+    checkoutStore.status.set('idle');
+    checkoutStore.error.set(null);
+    checkoutStore.appliedCoupon.set(null);
+    checkoutStore.refreshQuote.mockReset();
+    checkoutStore.applyCoupon.mockReset();
+    checkoutStore.removeCoupon.mockReset();
   });
 
   it('renders the products returned by the API', () => {
@@ -120,7 +140,7 @@ describe('CatalogPageComponent', () => {
     fixture.detectChanges();
 
     expect(cart.itemCount()).toBe(1);
-    expect(fixture.nativeElement.querySelector('.cart-preview-total strong')?.textContent).toContain('$120.00');
+    expect(fixture.nativeElement.querySelector('.mobile-cart-bar strong')?.textContent).toContain('$120.00');
 
     const quantityButtons = fixture.nativeElement.querySelectorAll('.cart-item .quantity-control button');
     (quantityButtons[1] as HTMLButtonElement).click();
@@ -153,5 +173,32 @@ describe('CatalogPageComponent', () => {
 
     expect(fixture.nativeElement.querySelectorAll('.mobile-cart-items li')).toHaveLength(1);
     expect(fixture.nativeElement.querySelector('.mobile-sheet-total strong')?.textContent).toContain('$120.00');
+  });
+
+  it('forwards the coupon entered by the customer and lets them remove it', () => {
+    getProducts.mockReturnValue(of(products));
+    fixture = TestBed.createComponent(CatalogPageComponent);
+    fixture.detectChanges();
+
+    const firstProductCard = fixture.nativeElement.querySelector('app-product-card') as HTMLElement;
+    (firstProductCard.querySelector('button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const couponInput = fixture.nativeElement.querySelector('#coupon-code') as HTMLInputElement;
+    couponInput.value = ' welcome2026 ';
+    couponInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const applyButton = fixture.nativeElement.querySelector('.coupon-input-row button') as HTMLButtonElement;
+    applyButton.click();
+    expect(checkoutStore.applyCoupon).toHaveBeenCalledWith(' welcome2026 ');
+
+    checkoutStore.appliedCoupon.set('WELCOME2026');
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.applied-coupon button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(checkoutStore.removeCoupon).toHaveBeenCalled();
+    expect((fixture.nativeElement.querySelector('#coupon-code') as HTMLInputElement).value).toBe('');
   });
 });
