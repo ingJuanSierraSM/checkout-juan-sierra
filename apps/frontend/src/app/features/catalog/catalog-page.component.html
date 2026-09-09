@@ -1,0 +1,91 @@
+<header class="store-header">
+  <a class="brand" routerLink="/" aria-label="DaviShop, inicio">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="currentColor"/><path d="M9 21v-7h6v7" fill="#c83f35"/></svg>
+    </span>
+    <span>DaviShop</span>
+  </a>
+
+  <nav aria-label="Navegación principal">
+    <a aria-current="page" routerLink="/">Productos</a>
+    <span>Mis órdenes</span>
+  </nav>
+
+  <div class="header-cart" aria-label="Carrito vacío">
+    <svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 10.1a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.4L21 7H7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><circle cx="10" cy="20" r="1.25" fill="currentColor"/><circle cx="18" cy="20" r="1.25" fill="currentColor"/></svg>
+    <span class="header-cart-label">Carrito</span>
+    <span class="cart-badge">0</span>
+  </div>
+</header>
+
+<main class="catalog-layout">
+  <section class="catalog-content" aria-labelledby="catalog-title">
+    <p class="eyebrow">Compra inteligente</p>
+    <div class="catalog-heading">
+      <div>
+        <h1 id="catalog-title">Encuentra lo que necesitas.</h1>
+        <p>Arma tu compra y descubre descuentos que se acumulan contigo.</p>
+      </div>
+      @if (status() === 'ready') {
+        <span class="catalog-count">{{ productCount() }} productos</span>
+      }
+    </div>
+
+    @if (status() === 'loading') {
+      <section class="product-grid" aria-label="Cargando catálogo" aria-busy="true">
+        @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+          <div class="product-skeleton">
+            <div class="skeleton-visual"></div>
+            <div class="skeleton-content">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        }
+      </section>
+    } @else if (status() === 'error') {
+      <section class="catalog-feedback" role="alert">
+        <div class="feedback-icon" aria-hidden="true">!</div>
+        <h2>No pudimos cargar el catálogo</h2>
+        <p>Verifica que el backend esté en ejecución y vuelve a intentarlo.</p>
+        <button type="button" (click)="loadProducts()">Reintentar</button>
+      </section>
+    } @else if (products().length === 0) {
+      <section class="catalog-feedback">
+        <div class="feedback-icon" aria-hidden="true">⌑</div>
+        <h2>Aún no hay productos disponibles</h2>
+        <p>Vuelve pronto para conocer las novedades de DaviShop.</p>
+      </section>
+    } @else {
+      <section class="product-grid" aria-label="Productos disponibles">
+        @for (product of products(); track product.id) {
+          <app-product-card [product]="product" />
+        }
+      </section>
+    }
+  </section>
+
+  <aside class="cart-preview" aria-label="Resumen del carrito">
+    <div class="cart-preview-heading">
+      <div>
+        <span class="cart-preview-kicker">Tu selección</span>
+        <h2>Carrito</h2>
+      </div>
+      <span class="cart-preview-count">0</span>
+    </div>
+    <div class="empty-cart-preview">
+      <div class="empty-cart-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.2 10.1a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.4L21 7H7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><circle cx="10" cy="20" r="1.25" fill="currentColor"/><circle cx="18" cy="20" r="1.25" fill="currentColor"/></svg></div>
+      <strong>Tu carrito está esperando</strong>
+      <p>Agrega productos para ver tu ahorro en tiempo real.</p>
+    </div>
+    <div class="cart-preview-total">
+      <span>Subtotal</span>
+      <strong>$0.00</strong>
+    </div>
+    <button type="button" disabled>Continuar compra</button>
+  </aside>
+</main>
+
+<div class="mobile-cart-bar" aria-label="Carrito vacío">
+  <div><span>Carrito</span><strong>$0.00</strong></div>
+  <span class="mobile-cart-count">0</span>
+</div>

@@ -1,0 +1,114 @@
+.product-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 315px;
+  border: 1px solid #eee5e1;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(69, 48, 44, 0.07);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.product-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 17px 32px rgba(69, 48, 44, 0.12);
+}
+
+.product-visual {
+  display: grid;
+  min-height: 151px;
+  place-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #f4e3db, #fff9f5);
+}
+
+.product-visual--2,
+.product-visual--3 {
+  background: linear-gradient(135deg, #dce9ed, #f7fafb);
+}
+
+.product-visual--4 {
+  background: linear-gradient(135deg, #eee0d5, #faf5f0);
+}
+
+.product-visual--5 {
+  background: linear-gradient(135deg, #f3dbd5, #fff6f2);
+}
+
+.product-visual--6 {
+  background: linear-gradient(135deg, #e9ded9, #faf6f3);
+}
+
+.product-visual svg {
+  width: min(100%, 160px);
+  height: 116px;
+}
+
+.product-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 18px;
+}
+
+.product-category {
+  color: #a6362e;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+h2 {
+  margin: 7px 0 9px;
+  color: #28252a;
+  font-size: 1.06rem;
+  letter-spacing: -0.02em;
+}
+
+.product-stock {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: #6e6b70;
+  font-size: 0.78rem;
+}
+
+.stock-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2c8a50;
+}
+
+.product-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 17px;
+}
+
+.product-footer strong {
+  color: #242126;
+  font-size: 1.12rem;
+  letter-spacing: -0.025em;
+}
+
+button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: #f2cfca;
+  color: #8d3730;
+  font-size: 0.79rem;
+  font-weight: 800;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
