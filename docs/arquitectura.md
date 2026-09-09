@@ -74,6 +74,7 @@ La orden conserva snapshots de nombre, precio y categoría de los productos. Los
 | Límite como política | Separa una restricción global de las reglas promocionales. |
 | Bloqueos pesimistas al confirmar | Evitan el doble consumo del cupón y sobreventa bajo concurrencia. |
 | Scripts SQL idempotentes | Simplifican la evaluación local sin agregar Flyway o Docker fuera del alcance. |
+| H2 aislado para pruebas | La suite no modifica inventario, cupones ni secuencias de la base PostgreSQL local. |
 | JaCoCo enfocado en checkout | El umbral cubre el núcleo de cálculo y confirmación, no DTOs o mapeo de infraestructura. |
 
 ## Alcance deliberadamente excluido
