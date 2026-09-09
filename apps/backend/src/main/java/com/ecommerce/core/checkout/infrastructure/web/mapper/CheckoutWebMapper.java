@@ -2,9 +2,11 @@ package com.ecommerce.core.checkout.infrastructure.web.mapper;
 
 import com.ecommerce.core.checkout.application.model.CheckoutItem;
 import com.ecommerce.core.checkout.application.model.CheckoutQuote;
+import com.ecommerce.core.checkout.application.model.ProcessedCheckout;
 import com.ecommerce.core.checkout.application.model.QuoteCheckoutCommand;
 import com.ecommerce.core.checkout.domain.model.DiscountDetail;
 import com.ecommerce.core.checkout.infrastructure.web.dto.CheckoutQuoteResponse;
+import com.ecommerce.core.checkout.infrastructure.web.dto.CheckoutCompletedResponse;
 import com.ecommerce.core.checkout.infrastructure.web.dto.DiscountDetailResponse;
 import com.ecommerce.core.checkout.infrastructure.web.dto.QuoteCheckoutRequest;
 import org.springframework.stereotype.Component;
@@ -26,6 +28,22 @@ public class CheckoutWebMapper {
     public CheckoutQuoteResponse toQuoteResponse(CheckoutQuote quote) {
         var breakdown = quote.breakdown();
         return new CheckoutQuoteResponse(
+                breakdown.originalSubtotal().amount(),
+                breakdown.discounts().stream().map(this::toDiscountDetailResponse).toList(),
+                breakdown.calculatedDiscountBeforeCap().amount(),
+                breakdown.totalDiscount().amount(),
+                breakdown.effectiveDiscountPercentage(),
+                breakdown.finalTotal().amount(),
+                breakdown.discountCapApplied(),
+                breakdown.maximumDiscountPercentage()
+        );
+    }
+
+    public CheckoutCompletedResponse toCompletedResponse(ProcessedCheckout processedCheckout) {
+        var breakdown = processedCheckout.quote().breakdown();
+        return new CheckoutCompletedResponse(
+                processedCheckout.orderId(),
+                processedCheckout.createdAt(),
                 breakdown.originalSubtotal().amount(),
                 breakdown.discounts().stream().map(this::toDiscountDetailResponse).toList(),
                 breakdown.calculatedDiscountBeforeCap().amount(),
