@@ -171,7 +171,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('responde 200 y crea una orden', () => pm.response.to.have.status(200));",
+                  "pm.test('responde 201 y crea una orden', () => pm.response.to.have.status(201));",
                   "const response = pm.response.json();",
                   "pm.collectionVariables.set('orderId', response.orderId);",
                   "pm.test('guarda el total calculado', () => pm.expect(response.finalTotal).to.eql(87.21));"

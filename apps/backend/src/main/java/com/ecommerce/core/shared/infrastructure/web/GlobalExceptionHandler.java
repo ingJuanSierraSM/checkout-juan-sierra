@@ -85,8 +85,8 @@ public class GlobalExceptionHandler {
         return switch (errorCode) {
             case EMPTY_CART, INVALID_CART -> HttpStatus.BAD_REQUEST;
             case PRODUCT_NOT_FOUND, COUPON_NOT_FOUND, ORDER_NOT_FOUND, DISCOUNT_POLICY_NOT_FOUND -> HttpStatus.NOT_FOUND;
-            case INSUFFICIENT_STOCK, COUPON_ALREADY_USED -> HttpStatus.CONFLICT;
-            case INACTIVE_PRODUCT, COUPON_INACTIVE, COUPON_EXPIRED -> HttpStatus.UNPROCESSABLE_CONTENT;
+            case INSUFFICIENT_STOCK, COUPON_ALREADY_USED, PRODUCT_INACTIVE -> HttpStatus.CONFLICT;
+            case COUPON_INACTIVE, COUPON_EXPIRED -> HttpStatus.UNPROCESSABLE_CONTENT;
         };
     }
 
