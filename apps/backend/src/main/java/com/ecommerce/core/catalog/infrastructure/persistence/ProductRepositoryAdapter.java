@@ -5,6 +5,7 @@ import com.ecommerce.core.catalog.domain.model.Product;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class ProductRepositoryAdapter implements ProductRepository {
@@ -21,5 +22,10 @@ public class ProductRepositoryAdapter implements ProductRepository {
                 .stream()
                 .map(ProductJpaEntity::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Optional<Product> findById(Long id) {
+        return repository.findById(id).map(ProductJpaEntity::toDomain);
     }
 }
