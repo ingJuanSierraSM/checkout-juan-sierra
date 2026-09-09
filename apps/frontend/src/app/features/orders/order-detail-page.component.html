@@ -1,0 +1,65 @@
+<header class="detail-header">
+  <a class="brand" routerLink="/" aria-label="DaviShop, inicio">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="currentColor"/><path d="M9 21v-7h6v7" fill="#c83f35"/></svg>
+    </span>
+    <span>DaviShop</span>
+  </a>
+  <nav aria-label="Navegación principal">
+    <a routerLink="/">Productos</a>
+    <a aria-current="page" routerLink="/orders">Mis órdenes</a>
+  </nav>
+</header>
+
+<main class="order-detail-page">
+  <a class="back-link" routerLink="/orders"><span aria-hidden="true">←</span> Volver a mis órdenes</a>
+
+  @if (status() === 'loading') {
+    <section class="detail-skeleton" aria-label="Cargando detalle de orden" aria-busy="true"><span></span><span></span><span></span><span></span></section>
+  } @else if (status() === 'error') {
+    <section class="detail-feedback" role="alert">
+      <div class="feedback-icon" aria-hidden="true">!</div>
+      <h1>No pudimos cargar esta orden</h1>
+      <p>Puede que no exista o que el backend no esté disponible.</p>
+      <button type="button" (click)="loadOrder()">Reintentar</button>
+    </section>
+  } @else if (order(); as currentOrder) {
+    <section class="detail-heading" aria-labelledby="detail-title">
+      <div>
+        <p class="eyebrow">Compra confirmada</p>
+        <h1 id="detail-title">Orden #{{ currentOrder.id }}</h1>
+        <p>Realizada el {{ currentOrder.createdAt | date: 'd MMM y, h:mm a' }}.</p>
+      </div>
+      <span class="completed-pill">Completada</span>
+    </section>
+
+    @if (currentOrder.discountCapApplied) {
+      <div class="discount-cap-alert" role="status">Aplicamos el límite máximo de 35% para proteger el valor de tu compra.</div>
+    }
+
+    <div class="detail-grid">
+      <section class="detail-card" aria-labelledby="items-title">
+        <div class="card-heading"><div><p class="eyebrow">Tu selección</p><h2 id="items-title">Productos</h2></div><span>{{ currentOrder.items.length }} {{ currentOrder.items.length === 1 ? 'producto' : 'productos' }}</span></div>
+        <ul class="order-items">
+          @for (item of currentOrder.items; track item.productId) {
+            <li>
+              <span class="item-art" [class]="'item-art item-art--' + item.category">{{ item.productName.charAt(0) }}</span>
+              <div><strong>{{ item.productName }}</strong><span>{{ getCategoryLabel(item.category) }} · {{ item.quantity }} {{ item.quantity === 1 ? 'unidad' : 'unidades' }}</span></div>
+              <strong>{{ item.unitPrice * item.quantity | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <section class="detail-card summary-card" aria-labelledby="summary-title">
+        <div class="card-heading"><div><p class="eyebrow">Resumen</p><h2 id="summary-title">Pago</h2></div></div>
+        <div class="summary-row"><span>Subtotal original</span><strong>{{ currentOrder.originalSubtotal | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+        @for (discount of currentOrder.discounts; track discount.sequence) {
+          <div class="summary-row discount-row"><span>{{ discount.name }} ({{ discount.percentage }}%)</span><strong>−{{ discount.amount | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+        }
+        <div class="savings-row"><span>Ahorro total · {{ currentOrder.effectiveDiscountPercentage }}%</span><strong>−{{ currentOrder.totalDiscount | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+        <div class="final-total"><span>Total pagado</span><strong>{{ currentOrder.finalTotal | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+      </section>
+    </div>
+  }
+</main>

@@ -1,0 +1,64 @@
+<header class="orders-header">
+  <a class="brand" routerLink="/" aria-label="DaviShop, inicio">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="currentColor"/><path d="M9 21v-7h6v7" fill="#c83f35"/></svg>
+    </span>
+    <span>DaviShop</span>
+  </a>
+  <nav aria-label="Navegación principal">
+    <a routerLink="/">Productos</a>
+    <a aria-current="page" routerLink="/orders">Mis órdenes</a>
+  </nav>
+</header>
+
+<main class="orders-page" aria-labelledby="orders-title">
+  <div class="orders-heading">
+    <div>
+      <p class="eyebrow">Historial de compras</p>
+      <h1 id="orders-title">Mis órdenes</h1>
+      <p>Consulta el estado y el detalle de cada compra realizada.</p>
+    </div>
+    @if (status() === 'ready') {
+      <span class="orders-count">{{ orderCount() }} {{ orderCount() === 1 ? 'orden' : 'órdenes' }}</span>
+    }
+  </div>
+
+  @if (status() === 'loading') {
+    <section class="orders-panel order-skeleton-list" aria-label="Cargando órdenes" aria-busy="true">
+      @for (item of [1, 2, 3]; track item) {
+        <div class="order-skeleton"><span></span><span></span><span></span><span></span></div>
+      }
+    </section>
+  } @else if (status() === 'error') {
+    <section class="orders-feedback" role="alert">
+      <div class="feedback-icon" aria-hidden="true">!</div>
+      <h2>No pudimos cargar tus órdenes</h2>
+      <p>Verifica que el backend esté en ejecución e inténtalo nuevamente.</p>
+      <button type="button" (click)="loadOrders()">Reintentar</button>
+    </section>
+  } @else if (orders().length === 0) {
+    <section class="orders-feedback">
+      <div class="feedback-icon" aria-hidden="true">⌑</div>
+      <h2>Aún no tienes órdenes</h2>
+      <p>Explora el catálogo y crea tu primera compra para verla aquí.</p>
+      <a routerLink="/">Ir al catálogo</a>
+    </section>
+  } @else {
+    <section class="orders-panel" aria-label="Listado de órdenes">
+      <div class="order-table-header" aria-hidden="true">
+        <span>Orden</span><span>Fecha</span><span>Ahorro</span><span>Total</span><span></span>
+      </div>
+      <div class="order-list">
+        @for (order of orders(); track order.id) {
+          <a class="order-row" [routerLink]="['/orders', order.id]" [attr.aria-label]="'Ver detalle de la orden ' + order.id">
+            <div class="order-reference"><span class="order-icon" aria-hidden="true">#</span><strong>Orden #{{ order.id }}</strong></div>
+            <time [attr.datetime]="order.createdAt">{{ order.createdAt | date: 'd MMM y, h:mm a' }}</time>
+            <div class="order-savings"><span>Ahorro</span><strong>−{{ order.totalDiscount | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong></div>
+            <strong class="order-total">{{ order.finalTotal | currency: 'USD' : 'symbol-narrow' : '1.2-2' }}</strong>
+            <span class="order-detail-link">Ver detalle <span aria-hidden="true">→</span></span>
+          </a>
+        }
+      </div>
+    </section>
+  }
+</main>

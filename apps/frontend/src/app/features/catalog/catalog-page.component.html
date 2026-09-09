@@ -8,7 +8,7 @@
 
   <nav aria-label="Navegación principal">
     <a aria-current="page" routerLink="/">Productos</a>
-    <span>Mis órdenes</span>
+    <a routerLink="/orders">Mis órdenes</a>
   </nav>
 
   <div class="header-cart" [attr.aria-label]="cart.itemCount() + ' productos en el carrito'">
