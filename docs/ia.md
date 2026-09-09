@@ -37,7 +37,7 @@ La especificación completa permanece en el archivo del skill para que pueda rep
 
 **Lista de control:** lógica de negocio fuera de controllers, dominio sin dependencias de framework, cálculo secuencial y cap final, cotización sin efectos secundarios, confirmación transaccional con revalidación, snapshots históricos, errores tipados y cobertura de rutas críticas.
 
-**Formato de salida:** severidad, archivo/clase, evidencia, impacto y corrección sugerida. Si no hay hallazgos bloqueantes, declara verificaciones realizadas y riesgos residuales.
+**Formato de salida:** control auditado, archivo/clase, evidencia, estado y corrección sugerida si aplica. Si no hay hallazgos, declara las verificaciones realizadas y los riesgos residuales.
 
 ## ✅ Ejecución de los artefactos sobre el código final
 
@@ -56,14 +56,14 @@ La siguiente revisión se realizó sobre los archivos actuales y se contrastó c
 
 ### 🧾 Resultado del agente de revisión
 
-| Severidad | Verificación | Evidencia | Resultado |
-| --- | --- | --- | --- |
-| Bloqueante | Lógica fuera de los controllers. | `CheckoutController` valida, mapea y delega en puertos de entrada; no usa repositorios ni entidades JPA. | Sin hallazgo. |
-| Bloqueante | Cotización sin efectos secundarios. | `QuoteCheckoutService` usa `prepareQuote`; la prueba verifica cero invocaciones a `CouponRepository.save`. | Sin hallazgo. |
-| Bloqueante | Revalidación y concurrencia al confirmar. | `ProcessCheckoutService` es `@Transactional`; `CheckoutPricingService` usa consultas `findByIdForUpdate` y `findByCodeForUpdate`. | Sin hallazgo. |
-| Alto | Descuentos y cap correctos. | `DiscountEngine` ordena las reglas por secuencia y `MaximumDiscountPolicy` se ejecuta una sola vez al final. | Sin hallazgo. |
-| Alto | Historial estable y sin duplicación de cupón. | La orden persiste snapshots de ítems y `order_discounts`; `orders` no tiene `coupon_code`. | Sin hallazgo. |
-| Medio | Error HTTP consistente. | `GlobalExceptionHandler` convierte reglas y validaciones a un contrato `ApiErrorResponse` tipado. | Sin hallazgo. |
+| Control auditado | Evidencia | Estado |
+| --- | --- | --- |
+| Lógica fuera de los controllers. | `CheckoutController` valida, mapea y delega en puertos de entrada; no usa repositorios ni entidades JPA. | ✅ Conforme |
+| Cotización sin efectos secundarios. | `QuoteCheckoutService` usa `prepareQuote`; la prueba verifica cero invocaciones a `CouponRepository.save`. | ✅ Conforme |
+| Revalidación y concurrencia al confirmar. | `ProcessCheckoutService` es `@Transactional`; `CheckoutPricingService` usa consultas `findByIdForUpdate` y `findByCodeForUpdate`. | ✅ Conforme |
+| Descuentos y cap correctos. | `DiscountEngine` ordena las reglas por secuencia y `MaximumDiscountPolicy` se ejecuta una sola vez al final. | ✅ Conforme |
+| Historial estable y sin duplicación de cupón. | La orden persiste snapshots de ítems y `order_discounts`; `orders` no tiene `coupon_code`. | ✅ Conforme |
+| Error HTTP consistente. | `GlobalExceptionHandler` convierte reglas y validaciones a un contrato `ApiErrorResponse` tipado. | ✅ Conforme |
 
 **Riesgo residual conocido:** con las reglas fijas de 10%, 5% y 15% aplicadas en cascada, el seed estándar solo alcanza 27.325%; por tanto no activa visualmente el cap de 35%. El comportamiento sí se cubre de manera determinista en el motor y la UI acepta la señal `discountCapApplied`. La limitación, su cálculo y una ruta de evolución están registrados en [arquitectura.md](arquitectura.md).
 
