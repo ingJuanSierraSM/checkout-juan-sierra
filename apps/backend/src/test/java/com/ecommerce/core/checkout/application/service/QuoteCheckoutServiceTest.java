@@ -14,9 +14,13 @@ import com.ecommerce.core.promotion.application.port.out.DiscountPolicyRepositor
 import com.ecommerce.core.promotion.domain.model.Coupon;
 import com.ecommerce.core.promotion.domain.model.DiscountPolicy;
 import com.ecommerce.core.shared.application.exception.CouponExpiredException;
+import com.ecommerce.core.shared.application.exception.CouponAlreadyUsedException;
+import com.ecommerce.core.shared.application.exception.CouponInactiveException;
 import com.ecommerce.core.shared.application.exception.EmptyCartException;
+import com.ecommerce.core.shared.application.exception.InactiveProductException;
 import com.ecommerce.core.shared.application.exception.InsufficientStockException;
 import com.ecommerce.core.shared.application.exception.InvalidCartException;
+import com.ecommerce.core.shared.application.exception.ProductNotFoundException;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -76,6 +80,22 @@ class QuoteCheckoutServiceTest {
     }
 
     @Test
+    void shouldRejectMissingProduct() {
+        QuoteCheckoutService service = service(List.of(), new FakeCouponRepository(Optional.empty()));
+
+        assertThatThrownBy(() -> service.quote(new QuoteCheckoutCommand(List.of(new CheckoutItem(99L, 1)), null)))
+                .isInstanceOf(ProductNotFoundException.class);
+    }
+
+    @Test
+    void shouldRejectInactiveProduct() {
+        QuoteCheckoutService service = service(List.of(laptop(5, false)), new FakeCouponRepository(Optional.empty()));
+
+        assertThatThrownBy(() -> service.quote(new QuoteCheckoutCommand(List.of(new CheckoutItem(1L, 1)), null)))
+                .isInstanceOf(InactiveProductException.class);
+    }
+
+    @Test
     void shouldRejectExpiredCoupon() {
         Coupon expiredCoupon = new Coupon(1L, "WELCOME2026", new BigDecimal("15"), true, NOW.minusSeconds(1), null);
         QuoteCheckoutService service = service(List.of(laptop(5, true)), new FakeCouponRepository(Optional.of(expiredCoupon)));
@@ -84,12 +104,32 @@ class QuoteCheckoutServiceTest {
                 .isInstanceOf(CouponExpiredException.class);
     }
 
+    @Test
+    void shouldRejectUsedCoupon() {
+        Coupon usedCoupon = new Coupon(1L, "WELCOME2026", new BigDecimal("15"), true,
+                NOW.plusSeconds(3600), NOW.minusSeconds(1));
+        QuoteCheckoutService service = service(List.of(laptop(5, true)), new FakeCouponRepository(Optional.of(usedCoupon)));
+
+        assertThatThrownBy(() -> service.quote(new QuoteCheckoutCommand(List.of(new CheckoutItem(1L, 1)), "WELCOME2026")))
+                .isInstanceOf(CouponAlreadyUsedException.class);
+    }
+
+    @Test
+    void shouldRejectInactiveCoupon() {
+        Coupon inactiveCoupon = new Coupon(1L, "WELCOME2026", new BigDecimal("15"), false,
+                NOW.plusSeconds(3600), null);
+        QuoteCheckoutService service = service(List.of(laptop(5, true)), new FakeCouponRepository(Optional.of(inactiveCoupon)));
+
+        assertThatThrownBy(() -> service.quote(new QuoteCheckoutCommand(List.of(new CheckoutItem(1L, 1)), "WELCOME2026")))
+                .isInstanceOf(CouponInactiveException.class);
+    }
+
     private QuoteCheckoutService service(List<Product> products, CouponRepository couponRepository) {
         ProductRepository productRepository = new FakeProductRepository(products.stream()
                 .collect(java.util.stream.Collectors.toMap(Product::id, product -> product)));
         DiscountPolicyRepository policyRepository = code -> Optional.of(new DiscountPolicy(
                 1L,
-                QuoteCheckoutService.MAXIMUM_DISCOUNT_POLICY_CODE,
+                CheckoutPricingService.MAXIMUM_DISCOUNT_POLICY_CODE,
                 new BigDecimal("35.00"),
                 NOW
         ));
@@ -98,7 +138,13 @@ class QuoteCheckoutServiceTest {
                 new VolumeDiscountStrategy(),
                 new CouponDiscountStrategy()
         ));
-        return new QuoteCheckoutService(productRepository, couponRepository, policyRepository, engine, CLOCK);
+        return new QuoteCheckoutService(new CheckoutPricingService(
+                productRepository,
+                couponRepository,
+                policyRepository,
+                engine,
+                CLOCK
+        ));
     }
 
     private Product laptop(int stock, boolean active) {
@@ -126,6 +172,17 @@ class QuoteCheckoutServiceTest {
         public Optional<Product> findById(Long id) {
             return Optional.ofNullable(products.get(id));
         }
+
+        @Override
+        public Optional<Product> findByIdForUpdate(Long id) {
+            return findById(id);
+        }
+
+        @Override
+        public Product save(Product product) {
+            products.put(product.id(), product);
+            return product;
+        }
     }
 
     private static final class FakeCouponRepository implements CouponRepository {
@@ -139,6 +196,11 @@ class QuoteCheckoutServiceTest {
         @Override
         public Optional<Coupon> findByCode(String code) {
             return coupon.filter(value -> value.code().equals(code));
+        }
+
+        @Override
+        public Optional<Coupon> findByCodeForUpdate(String code) {
+            return findByCode(code);
         }
 
         @Override

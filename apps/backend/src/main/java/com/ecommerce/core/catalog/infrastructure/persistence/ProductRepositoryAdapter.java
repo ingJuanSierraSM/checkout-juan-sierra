@@ -28,4 +28,14 @@ public class ProductRepositoryAdapter implements ProductRepository {
     public Optional<Product> findById(Long id) {
         return repository.findById(id).map(ProductJpaEntity::toDomain);
     }
+
+    @Override
+    public Optional<Product> findByIdForUpdate(Long id) {
+        return repository.findByIdForUpdate(id).map(ProductJpaEntity::toDomain);
+    }
+
+    @Override
+    public Product save(Product product) {
+        return repository.save(ProductJpaEntity.fromDomain(product)).toDomain();
+    }
 }

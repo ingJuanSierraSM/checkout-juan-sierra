@@ -43,6 +43,18 @@ public class ProductJpaEntity {
     protected ProductJpaEntity() {
     }
 
+    public static ProductJpaEntity fromDomain(Product product) {
+        ProductJpaEntity entity = new ProductJpaEntity();
+        entity.id = product.id();
+        entity.name = product.name();
+        entity.unitPrice = product.unitPrice();
+        entity.category = product.category();
+        entity.stock = product.stock();
+        entity.active = product.active();
+        entity.imageUrl = product.imageUrl();
+        return entity;
+    }
+
     public Product toDomain() {
         return new Product(id, name, unitPrice, category, stock, active, imageUrl);
     }

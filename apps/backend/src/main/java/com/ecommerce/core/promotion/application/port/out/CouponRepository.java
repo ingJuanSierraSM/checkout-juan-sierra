@@ -8,5 +8,7 @@ public interface CouponRepository {
 
     Optional<Coupon> findByCode(String code);
 
+    Optional<Coupon> findByCodeForUpdate(String code);
+
     Coupon save(Coupon coupon);
 }

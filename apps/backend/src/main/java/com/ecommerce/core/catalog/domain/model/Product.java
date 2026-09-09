@@ -27,4 +27,14 @@ public record Product(
             throw new IllegalArgumentException("Product stock cannot be negative");
         }
     }
+
+    public Product decreaseStock(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Product quantity must be greater than zero");
+        }
+        if (quantity > stock) {
+            throw new IllegalArgumentException("Product stock cannot become negative");
+        }
+        return new Product(id, name, unitPrice, category, stock - quantity, active, imageUrl);
+    }
 }

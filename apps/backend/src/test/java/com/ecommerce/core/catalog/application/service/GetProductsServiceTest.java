@@ -34,6 +34,16 @@ class GetProductsServiceTest {
             public Optional<Product> findById(Long id) {
                 return Optional.of(product);
             }
+
+            @Override
+            public Optional<Product> findByIdForUpdate(Long id) {
+                return Optional.of(product);
+            }
+
+            @Override
+            public Product save(Product productToSave) {
+                return productToSave;
+            }
         };
         GetProductsService service = new GetProductsService(repository);
 

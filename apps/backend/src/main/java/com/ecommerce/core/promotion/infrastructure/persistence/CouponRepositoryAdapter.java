@@ -21,6 +21,11 @@ public class CouponRepositoryAdapter implements CouponRepository {
     }
 
     @Override
+    public Optional<Coupon> findByCodeForUpdate(String code) {
+        return repository.findByCodeForUpdate(code).map(CouponJpaEntity::toDomain);
+    }
+
+    @Override
     public Coupon save(Coupon coupon) {
         return repository.save(CouponJpaEntity.fromDomain(coupon)).toDomain();
     }

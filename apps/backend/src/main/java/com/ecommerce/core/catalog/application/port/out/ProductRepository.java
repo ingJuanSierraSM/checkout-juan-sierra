@@ -10,4 +10,8 @@ public interface ProductRepository {
     List<Product> findActiveProducts();
 
     Optional<Product> findById(Long id);
+
+    Optional<Product> findByIdForUpdate(Long id);
+
+    Product save(Product product);
 }
