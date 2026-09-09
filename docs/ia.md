@@ -10,7 +10,7 @@ Estimación del proceso: **60% asistencia de IA y 40% definición, revisión y v
 
 - El alcance, los porcentajes de descuento, los contratos REST y las decisiones de arquitectura se definieron y aprobaron antes de integrar cada cambio.
 - Toda recomendación que afectó persistencia, concurrencia o reglas se contrastó con pruebas automatizadas y/o una llamada HTTP real.
-- La IA no recibió secretos externos. La contraseña local `root` es una configuración de demostración definida para la prueba y está documentada de forma visible.
+- La IA no recibió secretos externos. `DB_PASSWORD` admite una credencial local y conserva `root` solo como respaldo académico explícitamente documentado.
 - Los artefactos generados se revisaron contra el código actual: no se declara como implementado un comportamiento que no exista o no esté probado.
 - Los commits se hicieron por etapas funcionales y después de aprobación humana.
 

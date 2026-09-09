@@ -17,4 +17,13 @@ export class ProductCardComponent {
   readonly categoryLabel = computed(() => getCategoryLabel(this.product().category));
   readonly remainingStock = computed(() => this.product().stock - this.quantityInCart());
   readonly canAdd = computed(() => this.remainingStock() > 0);
+  readonly actionLabel = computed(() => {
+    if (this.isCheckoutProcessing()) {
+      return 'En proceso…';
+    }
+    if (this.product().stock <= 0) {
+      return 'Agotado';
+    }
+    return this.canAdd() ? 'Agregar' : 'Máximo';
+  });
 }

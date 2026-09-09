@@ -49,10 +49,16 @@ La configuración local intencionalmente explícita para la prueba está en [app
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/ecommerce_db
 spring.datasource.username=postgres
-spring.datasource.password=root
+spring.datasource.password=${DB_PASSWORD:root}
 ```
 
-> La contraseña `root` es solo una comodidad de desarrollo solicitada para esta prueba; no representa una configuración de producción.
+> Por razones académicas, `DB_PASSWORD` es opcional y usa `root` como respaldo. Así la demo local funciona sin crear variables de entorno; no representa una configuración de producción.
+
+Si deseas usar una contraseña diferente durante tu sesión de PowerShell, define la variable antes de iniciar el backend:
+
+```powershell
+$env:DB_PASSWORD = 'tu-contraseña-local'
+```
 
 Al iniciar el backend desde `apps/backend`, Spring ejecuta automáticamente [schema.sql](apps/backend/database/schema.sql) y [data.sql](apps/backend/database/data.sql). Los scripts son idempotentes, por lo que crean el esquema y los datos semilla sin duplicarlos.
 

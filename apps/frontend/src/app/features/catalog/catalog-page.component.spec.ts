@@ -167,6 +167,17 @@ describe('CatalogPageComponent', () => {
     expect(cart.isEmpty()).toBe(true);
   });
 
+  it('shows Agotado instead of Máximo when a product has no stock', () => {
+    getProducts.mockReturnValue(of([{ ...products[0], stock: 0 }]));
+    fixture = TestBed.createComponent(CatalogPageComponent);
+    fixture.detectChanges();
+
+    const addButton = fixture.nativeElement.querySelector('app-product-card button') as HTMLButtonElement;
+
+    expect(addButton.disabled).toBe(true);
+    expect(addButton.textContent).toContain('Agotado');
+  });
+
   it('opens and closes the mobile cart for both empty and populated carts', () => {
     getProducts.mockReturnValue(of(products));
     fixture = TestBed.createComponent(CatalogPageComponent);
