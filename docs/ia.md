@@ -6,6 +6,12 @@ La IA se usó como apoyo para explorar alternativas, estructurar código repetit
 
 Estimación del proceso: **60% asistencia de IA y 40% definición, revisión y validación manual**. El porcentaje expresa apoyo durante la producción; la responsabilidad de las decisiones y de la entrega final es humana.
 
+## 🧭 Especificación y planificación guiada
+
+Las decisiones funcionales y técnicas acordadas durante el desarrollo se consolidaron en la [especificación inicial y prompt maestro](especificacion-inicial.md). El artefacto reúne el alcance, las reglas, los contratos, los criterios de aceptación y el flujo de aprobación que un agente debe seguir antes de implementar.
+
+No sustituye la evidencia histórica de la bitácora; formaliza una fuente de verdad reutilizable para reproducir el proyecto o planear un cambio futuro sin depender del contexto de una conversación. El prompt exige separar backend y frontend, identificar ambigüedades antes de tocar reglas de negocio y esperar aprobación humana antes de cada fase, commit y push.
+
 ## 🛡️ Controles aplicados
 
 - El alcance, los porcentajes de descuento, los contratos REST y las decisiones de arquitectura se definieron y aprobaron antes de integrar cada cambio.
