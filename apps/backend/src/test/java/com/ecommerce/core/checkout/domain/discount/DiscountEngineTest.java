@@ -2,6 +2,8 @@ package com.ecommerce.core.checkout.domain.discount;
 
 import com.ecommerce.core.catalog.domain.model.Category;
 import com.ecommerce.core.checkout.domain.model.DiscountContext;
+import com.ecommerce.core.checkout.domain.model.DiscountDetail;
+import com.ecommerce.core.checkout.domain.model.DiscountType;
 import com.ecommerce.core.checkout.domain.model.Money;
 import com.ecommerce.core.checkout.domain.model.PricingItem;
 import com.ecommerce.core.promotion.domain.model.Coupon;
@@ -39,6 +41,25 @@ class DiscountEngineTest {
         assertThat(breakdown.totalDiscount().amount()).isEqualByComparingTo("30.00");
         assertThat(breakdown.effectiveDiscountPercentage()).isEqualByComparingTo("25.00");
         assertThat(breakdown.finalTotal().amount()).isEqualByComparingTo("90.00");
+        assertThat(breakdown.discountCapApplied()).isTrue();
+    }
+
+    @Test
+    void shouldCapDiscountAtExactlyThirtyFivePercentWhenCalculatedDiscountExceedsIt() {
+        MaximumDiscountPolicy policy = new MaximumDiscountPolicy(new BigDecimal("35"));
+
+        var breakdown = policy.apply(Money.of("100.00"), List.of(new DiscountDetail(
+                DiscountType.CATEGORY,
+                "Descuento de prueba",
+                new BigDecimal("40.00"),
+                Money.of("40.00"),
+                10
+        )));
+
+        assertThat(breakdown.calculatedDiscountBeforeCap().amount()).isEqualByComparingTo("40.00");
+        assertThat(breakdown.totalDiscount().amount()).isEqualByComparingTo("35.00");
+        assertThat(breakdown.effectiveDiscountPercentage()).isEqualByComparingTo("35.00");
+        assertThat(breakdown.finalTotal().amount()).isEqualByComparingTo("65.00");
         assertThat(breakdown.discountCapApplied()).isTrue();
     }
 

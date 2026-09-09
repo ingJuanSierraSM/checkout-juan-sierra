@@ -16,6 +16,7 @@ import com.ecommerce.core.promotion.domain.model.DiscountPolicy;
 import com.ecommerce.core.shared.application.exception.CouponExpiredException;
 import com.ecommerce.core.shared.application.exception.CouponAlreadyUsedException;
 import com.ecommerce.core.shared.application.exception.CouponInactiveException;
+import com.ecommerce.core.shared.application.exception.CouponNotFoundException;
 import com.ecommerce.core.shared.application.exception.EmptyCartException;
 import com.ecommerce.core.shared.application.exception.InactiveProductException;
 import com.ecommerce.core.shared.application.exception.InsufficientStockException;
@@ -102,6 +103,15 @@ class QuoteCheckoutServiceTest {
 
         assertThatThrownBy(() -> service.quote(new QuoteCheckoutCommand(List.of(new CheckoutItem(1L, 1)), "WELCOME2026")))
                 .isInstanceOf(CouponExpiredException.class);
+    }
+
+    @Test
+    void shouldRejectUnregisteredCoupon() {
+        QuoteCheckoutService service = service(List.of(laptop(5, true)), new FakeCouponRepository(Optional.empty()));
+
+        assertThatThrownBy(() -> service.quote(new QuoteCheckoutCommand(
+                List.of(new CheckoutItem(1L, 1)), "NOT_REGISTERED"
+        ))).isInstanceOf(CouponNotFoundException.class);
     }
 
     @Test
